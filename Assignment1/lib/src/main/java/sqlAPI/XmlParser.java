@@ -32,9 +32,8 @@ public class XmlParser {
             doc = db.parse(file);
             doc.getDocumentElement().normalize();
         }
-        catch (Exception e) {
-            System.out.println(e);
-        }
+        catch (Exception e) {System.out.println(e);}
+
     }
 
     public ArrayList<HashMap<String, String>> getElementByAttributeValue(String attributeName, String attributeValue) {
