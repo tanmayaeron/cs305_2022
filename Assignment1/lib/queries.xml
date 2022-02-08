@@ -9,4 +9,9 @@
         INSERT INTO my_table(x, y, x) VALUES(${propX}, ${propY}, ${propZ});
         ]]>
      </sql>
+     <sql id="getName" paramType="org.foo.Bar">
+         <![CDATA[
+        SELECT first_name from actor WHERE actor_id=${actorId};
+        ]]>
+     </sql>
  </queries>
