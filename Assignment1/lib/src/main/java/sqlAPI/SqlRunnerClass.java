@@ -1,6 +1,11 @@
 package sqlAPI;
 
+
+
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.sql.*;
 import java.lang.reflect.*;
@@ -33,14 +38,74 @@ public class SqlRunnerClass implements SqlRunner{
         catch(Exception e){System.out.println(e);}
     }
 
-    public static boolean isPrimitiveWrapper(String className){
+    public static <T> boolean isPrimitiveWrapper(String className,T queryParam){
         for(int i=0;i<primitiveClassName.length;i++){
             if(className.equals(primitiveClassName[i])) return true;
         }
         return false;
     }
 
+    public static <T> boolean isElement(String className,T queryParam){
+        if(isPrimitiveWrapper(className,queryParam)) return true;
+        if(className.equals("java.util.Date")) return true;
+        if(className.equals("java.lang.String")) return true;
 
+        return false;
+    }
+
+    public static <T> boolean isCollectionOrArray(String className,T queryParam){
+        if(queryParam.getClass().isArray()) return true;
+        if(queryParam instanceof Collection<?>) return true;
+        return false;
+    }
+
+    public static <T> String stringForElement(T param){
+        String className = param.getClass().getName();
+        if(className.equals("java.lang.String")||className.equals("java.lang.Character")
+                ||className.equals("java.util.Date")){
+            return "'"+param.toString()+"'";
+        }
+        if(isPrimitiveWrapper(className,param)) {
+            return param.toString();
+        }
+
+        return null; // throw error here
+
+    }
+
+    //this function works for both collection and array
+    public static <T> String stringForCollection(T param){
+
+        StringBuffer buffer = new StringBuffer();
+        buffer.append("(");
+        if(param.getClass().isArray()){
+            int len = Array.getLength(param);
+            for(int i=0;i<len;i++){
+                Object obj = Array.get(param,i);
+
+                if(i!=0) buffer.append(",");
+                buffer.append(stringForElement(obj));
+            }
+        }
+        else if(param instanceof Collection<?>){
+            Collection<?> obj = (Collection<?>)param;
+            Iterator<?> itr = obj.iterator();
+
+            boolean ifFirst = true;
+
+            while(itr.hasNext()){
+                Object o = itr.next();
+
+                if(!ifFirst)  buffer.append(",");
+                else ifFirst=false;
+
+                buffer.append(stringForElement(o));
+            }
+
+        }
+        buffer.append(")");
+        return buffer.toString();//throw error here
+    }
 
 
 

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -59,9 +60,29 @@ class LibraryTest {
         String output = SqlRunnerClass.replaceString("SELECT first_name from actor WHERE actor_id=${actorId};",input);
         assertEquals("SELECT first_name from actor WHERE actor_id=1;",output);
 
+
     }
 
-    @Test void primitiveWrapperTest() {
-        assertFalse(SqlRunnerClass.isPrimitiveWrapper("java.lang.String"));
+    @Test void returnStringTest() {
+        String input = "Dave";
+        String output = SqlRunnerClass.stringForElement(input);
+        assertEquals("'Dave'",output,"does not match");
+
     }
+
+    @Test void stringForCollectionTest() {
+        int [] arr = new int[]{1,2,3,4};
+        String output = SqlRunnerClass.stringForCollection(arr);
+        assertEquals("(1,2,3,4)",output,"did not match");
+
+        ArrayList<Integer> arr2 = new ArrayList<>();
+        arr2.add(1);
+        arr2.add(2);
+        arr2.add(3);
+        arr2.add(4);
+
+        assertEquals("(1,2,3,4)",SqlRunnerClass.stringForCollection(arr),"did not match");
+
+    }
+
 }
