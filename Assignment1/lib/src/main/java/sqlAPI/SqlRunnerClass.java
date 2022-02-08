@@ -12,6 +12,8 @@ import java.lang.reflect.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+
+
 public class SqlRunnerClass implements SqlRunner{
 
     private final static String queryAttributeName = "textContent";
@@ -116,21 +118,38 @@ public class SqlRunnerClass implements SqlRunner{
         StringBuffer buffer = new StringBuffer();
 
         Class cls = queryParam.getClass();
+        String className = cls.getName();
 
+        if(isElement(className,queryParam))
+            return stringForElement(queryParam);
+        else if(isCollectionOrArray(className,queryParam))
+            return stringForCollection(queryParam);
+        else {
 
-        try {
-            while (matcher.find()) {
-                Field field = cls.getDeclaredField(matcher.group(1));
-                field.setAccessible(true);
-                Object value = field.get(queryParam);
-                //System.out.println(field.get());
-                matcher.appendReplacement(buffer, value.toString());
+            try {
+                while (matcher.find()) {
+                    Field field = cls.getDeclaredField(matcher.group(1));
+                    field.setAccessible(true);
+                    Object value = field.get(queryParam);
+                    //System.out.println(field.get());
+
+                    if(isElement(value.getClass().getName(),value))
+                        matcher.appendReplacement(buffer, stringForElement(value));
+                    else if(isCollectionOrArray(value.getClass().getName(),value))
+                        matcher.appendReplacement(buffer, stringForCollection(value));
+                    else {
+                        //throw error
+                    }
+
+                }
+            } catch (Exception e) {
+                System.out.println(e);
             }
-        }
-        catch(Exception e){System.out.println(e);}
 
-        matcher.appendTail(buffer);
-        return buffer.toString();
+            matcher.appendTail(buffer);
+            return buffer.toString();
+
+        }
     }
 
     public static <T> void populateObject(ResultSet rs,T returnObject) {

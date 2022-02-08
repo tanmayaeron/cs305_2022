@@ -81,7 +81,8 @@ class LibraryTest {
         arr2.add(3);
         arr2.add(4);
 
-        assertEquals("(1,2,3,4)",SqlRunnerClass.stringForCollection(arr),"did not match");
+
+        assertEquals("(1,2,3,4)",SqlRunnerClass.stringForCollection(arr2),"did not match");
 
     }
 
