@@ -45,8 +45,8 @@ public class XmlParser {
             if(node.getNodeType()==Node.ELEMENT_NODE) {
                 Element tElement = (Element)node;
 
-                String nodeAtrributeValue = tElement.getAttribute(attributeName);
-                if(nodeAtrributeValue.equals(attributeValue)) {
+                String nodeAttributeValue = tElement.getAttribute(attributeName);
+                if(nodeAttributeValue.equals(attributeValue)) {
                     HashMap<String, String> hm = new HashMap<String, String>();
                     for(int j=0;j<attributeNames.length;j++) {
                         String index = attributeNames[j];

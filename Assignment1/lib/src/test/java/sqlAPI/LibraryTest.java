@@ -33,7 +33,7 @@ class LibraryTest {
             opp.filePath = "queries.xml";
             opp.tagName = "sql";
             opp.uniqueAttributeName = "id";
-            opp.attributeNames = new String[]{"id","paramType"};
+            opp.paramTypeAttributeName = "paramType";
 
             SqlRunner classUnderTest = new SqlRunnerClass(opp);
 

@@ -2,11 +2,9 @@ package sqlAPI;
 
 
 
+
 import java.lang.reflect.Array;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 import java.sql.*;
 import java.lang.reflect.*;
 import java.util.regex.Matcher;
@@ -24,7 +22,7 @@ public class SqlRunnerClass implements SqlRunner{
         public String filePath;
         public String tagName;
         public String uniqueAttributeName;
-        public String[] attributeNames;
+        public String paramTypeAttributeName;
     }
 
     private OpPrams params;
@@ -33,8 +31,10 @@ public class SqlRunnerClass implements SqlRunner{
 
     public SqlRunnerClass(OpPrams parameters) {
         params = parameters;
-        xmlParser = new XmlParser(params.filePath,params.tagName,params.attributeNames);
+
         try {
+            String[] attributeNames = {params.uniqueAttributeName,params.paramTypeAttributeName};
+            xmlParser = new XmlParser(params.filePath,params.tagName,attributeNames);
             stmt = params.con.createStatement();
         }
         catch(Exception e){System.out.println(e);}
@@ -50,28 +50,25 @@ public class SqlRunnerClass implements SqlRunner{
     public static <T> boolean isElement(String className,T queryParam){
         if(isPrimitiveWrapper(className,queryParam)) return true;
         if(className.equals("java.util.Date")) return true;
-        if(className.equals("java.lang.String")) return true;
-
-        return false;
+        return className.equals("java.lang.String");
     }
 
     public static <T> boolean isCollectionOrArray(String className,T queryParam){
         if(queryParam.getClass().isArray()) return true;
-        if(queryParam instanceof Collection<?>) return true;
-        return false;
+        return queryParam instanceof Collection<?>;
     }
 
     public static <T> String stringForElement(T param){
         String className = param.getClass().getName();
         if(className.equals("java.lang.String")||className.equals("java.lang.Character")
                 ||className.equals("java.util.Date")){
-            return "'"+param.toString()+"'";
+            return "'"+param+"'";
         }
         if(isPrimitiveWrapper(className,param)) {
             return param.toString();
         }
 
-        return null; // throw error here
+        throw new RuntimeException("param's type not expected"); // throw error here
 
     }
 
@@ -86,7 +83,10 @@ public class SqlRunnerClass implements SqlRunner{
                 Object obj = Array.get(param,i);
 
                 if(i!=0) buffer.append(",");
-                buffer.append(stringForElement(obj));
+                if(isElement(obj.getClass().getName(),obj))
+                    buffer.append(stringForElement(obj));
+                else buffer.append(obj);
+
             }
         }
         else if(param instanceof Collection<?>){
@@ -101,17 +101,20 @@ public class SqlRunnerClass implements SqlRunner{
                 if(!ifFirst)  buffer.append(",");
                 else ifFirst=false;
 
-                buffer.append(stringForElement(o));
+                if(isElement(o.getClass().getName(),o))
+                    buffer.append(stringForElement(o));
+                else buffer.append(o);
+
             }
 
         }
         buffer.append(")");
-        return buffer.toString();//throw error here
+        return buffer.toString();
     }
 
 
 
-    public static <T> String replaceString(String inputStr,T queryParam) {
+    public static <T> String replaceString(String inputStr,  T queryParam) {
         Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
         Matcher matcher = pattern.matcher(inputStr);
 
@@ -120,10 +123,10 @@ public class SqlRunnerClass implements SqlRunner{
         Class cls = queryParam.getClass();
         String className = cls.getName();
 
-        if(isElement(className,queryParam))
-            return stringForElement(queryParam);
-        else if(isCollectionOrArray(className,queryParam))
-            return stringForCollection(queryParam);
+        if(isElement(className,queryParam)&&matcher.find())
+            matcher.appendReplacement(buffer, stringForElement(queryParam));
+        else if(isCollectionOrArray(className,queryParam)&&matcher.find())
+            matcher.appendReplacement(buffer, stringForCollection(queryParam));
         else {
 
             try {
@@ -138,18 +141,20 @@ public class SqlRunnerClass implements SqlRunner{
                     else if(isCollectionOrArray(value.getClass().getName(),value))
                         matcher.appendReplacement(buffer, stringForCollection(value));
                     else {
-                        //throw error
+                        matcher.appendReplacement(buffer,value.toString());
                     }
 
                 }
             } catch (Exception e) {
-                System.out.println(e);
+                //System.out.println(e);
+                throw new RuntimeException(e);
             }
 
             matcher.appendTail(buffer);
-            return buffer.toString();
+
 
         }
+        return buffer.toString();
     }
 
     public static <T> void populateObject(ResultSet rs,T returnObject) {
@@ -164,7 +169,6 @@ public class SqlRunnerClass implements SqlRunner{
                 Field field = cls.getDeclaredField(columnName);
                 field.setAccessible(true);
 
-                Class fieldCls = field.getClass();
                 Object value = rs.getObject(i);
 
                 field.set(returnObject,value);
@@ -173,8 +177,34 @@ public class SqlRunnerClass implements SqlRunner{
 
         } catch(Exception e) {System.out.println(e);}
 
+    }
 
-        return;
+    public <T> String getQueryString(String queryId,T queryParam){
+        ////check queryParam type matching with XML
+        ////check if got an element from xmlParser
+        ////check if queryParam is not null
+
+        try{
+            ArrayList< HashMap<String,String> > arrLi =
+                    xmlParser.getElementByAttributeValue(params.paramTypeAttributeName, queryId);
+            if(arrLi.size()==0) throw new RuntimeException("No query with given parameters found");
+
+            HashMap<String,String> hm = arrLi.get(0);
+            String paramType = hm.get(params.paramTypeAttributeName);
+
+            if(queryParam==null) throw new RuntimeException("queryParam object is null");
+
+            if(!paramType.equals(queryParam.getClass().getName()))
+                throw new RuntimeException("queryParam object is not of type "+paramType);
+
+            String queryFormat = hm.get(queryAttributeName);
+            return replaceString(queryFormat,queryParam);
+
+
+        }
+        catch(Exception e) { throw new RuntimeException(e); }
+
+
     }
 
     public <T,R> R selectOne(String queryId,T queryParam, Class<R> resultType) {
@@ -183,13 +213,9 @@ public class SqlRunnerClass implements SqlRunner{
 
         try {
 
+            String query = getQueryString(queryId,queryParam);
+
             R returnObject = resultType.getDeclaredConstructor().newInstance();
-
-            //R returnObject = (R)temp;
-            String queryFormat = xmlParser.getElementByAttributeValue(params.uniqueAttributeName,queryId).
-                    get(0).get(queryAttributeName);
-
-            String query = replaceString(queryFormat,queryParam);
 
             ResultSet rs = stmt.executeQuery(query);
             ResultSetMetaData rsmd = rs.getMetaData();
@@ -197,18 +223,16 @@ public class SqlRunnerClass implements SqlRunner{
 
 
             if(rs.next()) populateObject(rs,returnObject);
-
-
-            //System.out.println(returnObject);
+            //else return null;
 
             if(rs.next()) {
-                //give error
+                throw new RuntimeException("result returns more than one rows");
             }
 
             return returnObject;
         }
-        catch (Exception e) {System.out.println(e);}
-        return null;
+        catch (Exception e) {throw new RuntimeException(e);}
+
     }
 
     public <T,R> List<R> selectMany(String queryId, T queryParam, Class<R> resultType) {
@@ -217,10 +241,8 @@ public class SqlRunnerClass implements SqlRunner{
 
         List<R> returnList = new ArrayList<>();
 
-        String queryFormat = xmlParser.getElementByAttributeValue(params.uniqueAttributeName,queryId).
-                get(0).get(queryAttributeName);
-        String query = replaceString(queryFormat,queryParam);
         try {
+            String query = getQueryString(queryId,queryParam);
             ResultSet rs = stmt.executeQuery(query);
             while(rs.next()){
                 R returnObject = resultType.getDeclaredConstructor().newInstance();
@@ -233,50 +255,31 @@ public class SqlRunnerClass implements SqlRunner{
 
     }
 
-    public <T> int insert(String queryId,T queryParam) {
-        //check queryParam type matching
-        //check if anything returned or not, not checked yet anywhere
-
-        int rowsAffected = 0;
-
-        String queryFormat = xmlParser.getElementByAttributeValue(params.uniqueAttributeName,queryId).
-                get(0).get(queryAttributeName);
-        String query = replaceString(queryFormat,queryParam);
+    public <T> int executeUpdateQuery(String queryId,T queryParam){
 
         try {
-            rowsAffected = stmt.executeUpdate(query);
+            String query = getQueryString(queryId,queryParam);
+            return stmt.executeUpdate(query);
         }
-        catch(Exception e) {System.out.println(e);}
+        catch(Exception e) {throw new RuntimeException(e);}
 
-        return rowsAffected;
+    }
+
+    public <T> int insert(String queryId,T queryParam) {
+
+        return executeUpdateQuery(queryId,queryParam);
+
     }
 
     public <T> int delete(String queryId,T queryParam) {
-        //check queryParam type matching
 
-        int rowsAffected = 0;
-        String queryFormat = xmlParser.getElementByAttributeValue(params.uniqueAttributeName,queryId).
-                get(0).get(queryAttributeName);
-        String query = replaceString(queryFormat,queryParam);
+       return executeUpdateQuery(queryId,queryParam);
 
-        try {
-            rowsAffected = stmt.executeUpdate(query);
-        }
-        catch(Exception e) {System.out.println(e);}
-        return rowsAffected;
     }
 
     public <T> int update(String queryId,T queryParam) {
-        //check queryParam type matching
-        int rowsAffected =0;
-        String queryFormat = xmlParser.getElementByAttributeValue(params.uniqueAttributeName,queryId).
-                get(0).get(queryAttributeName);
-        String query = replaceString(queryFormat,queryParam);
 
-        try {
-            rowsAffected = stmt.executeUpdate(query);
-        }
-        catch(Exception e) {System.out.println(e);}
-        return rowsAffected;
+        return executeUpdateQuery(queryId,queryParam);
+
     }
 }
