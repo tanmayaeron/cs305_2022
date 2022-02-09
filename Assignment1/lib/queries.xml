@@ -1,7 +1,12 @@
 <queries>
-    <sql id="getName" paramType="sqlAPI.Input">
+    <sql id="getName" paramType="java.lang.Integer">
         <![CDATA[
-        SELECT first_name from actor WHERE actor_id=${actorId};
+        SELECT first_name,last_name from actor WHERE actor_id=${actorId};
+        ]]>
+    </sql>
+    <sql id="getPersons" paramType="[I">
+        <![CDATA[
+        SELECT first_name,last_name from actor WHERE actor_id IN ${value} order by actor_id;
         ]]>
     </sql>
 </queries>

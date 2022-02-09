@@ -25,9 +25,9 @@ public class SqlRunnerClass implements SqlRunner{
         public String paramTypeAttributeName;
     }
 
-    private OpPrams params;
-    private XmlParser xmlParser;
-    private Statement stmt;
+    private final OpPrams params;
+    private final XmlParser xmlParser;
+    private final Statement stmt;
 
     public SqlRunnerClass(OpPrams parameters) {
         params = parameters;
@@ -37,7 +37,7 @@ public class SqlRunnerClass implements SqlRunner{
             xmlParser = new XmlParser(params.filePath,params.tagName,attributeNames);
             stmt = params.con.createStatement();
         }
-        catch(Exception e){System.out.println(e);}
+        catch(Exception e){throw new RuntimeException(e);}
     }
 
     public static <T> boolean isPrimitiveWrapper(String className,T queryParam){
@@ -120,7 +120,7 @@ public class SqlRunnerClass implements SqlRunner{
 
         StringBuffer buffer = new StringBuffer();
 
-        Class cls = queryParam.getClass();
+        Class<?> cls = queryParam.getClass();
         String className = cls.getName();
 
         if(isElement(className,queryParam)&&matcher.find())
@@ -162,7 +162,7 @@ public class SqlRunnerClass implements SqlRunner{
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
 
-            Class cls = returnObject.getClass();
+            Class<?> cls = returnObject.getClass();
 
             for(int i=1;i<=columnCount;i++){
                 String columnName =  rsmd.getColumnName(i);
@@ -175,7 +175,7 @@ public class SqlRunnerClass implements SqlRunner{
 
             }
 
-        } catch(Exception e) {System.out.println(e);}
+        } catch(Exception e) {throw new RuntimeException(e);}
 
     }
 
@@ -252,7 +252,7 @@ public class SqlRunnerClass implements SqlRunner{
                 returnList.add(returnObject);
             }
         }
-        catch(Exception e){System.out.println(e);}
+        catch(Exception e){throw new RuntimeException(e);}
         return returnList;
 
     }
