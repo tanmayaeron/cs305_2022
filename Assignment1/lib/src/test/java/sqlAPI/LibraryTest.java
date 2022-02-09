@@ -20,10 +20,10 @@ class Input {
 }
 
 class LibraryTest {
-    @Test void someLibraryMethodReturnsTrue() {
-        Library classUnderTest = new Library();
-        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'");
-    }
+//    @Test void someLibraryMethodReturnsTrue() {
+//        Library classUnderTest = new Library();
+//        assertTrue(classUnderTest.someLibraryMethod(), "someLibraryMethod should return 'true'");
+//    }
 
     @Test void sqlRunnerWorkingForSimpleCases() {
         try {
@@ -40,6 +40,8 @@ class LibraryTest {
             Output output = new Output();
             Input input = new Input();
 
+            //System.out.println(input.getClass().getName());
+
             input.actorId = 1;
 
 
@@ -49,7 +51,8 @@ class LibraryTest {
 
 
         }
-        catch(Exception e){assertTrue(false,"failed");}
+        catch(Exception e){assertTrue(false,"failed");
+            System.out.println(e);}
 
     }
 

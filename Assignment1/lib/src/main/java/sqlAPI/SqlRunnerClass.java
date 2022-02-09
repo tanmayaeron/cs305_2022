@@ -186,18 +186,20 @@ public class SqlRunnerClass implements SqlRunner{
 
         try{
             ArrayList< HashMap<String,String> > arrLi =
-                    xmlParser.getElementByAttributeValue(params.paramTypeAttributeName, queryId);
+                    xmlParser.getElementByAttributeValue(params.uniqueAttributeName, queryId);
             if(arrLi.size()==0) throw new RuntimeException("No query with given parameters found");
 
             HashMap<String,String> hm = arrLi.get(0);
             String paramType = hm.get(params.paramTypeAttributeName);
+            String queryFormat = hm.get(queryAttributeName);
 
+            if(queryParam==null&&paramType==null) return queryFormat;
             if(queryParam==null) throw new RuntimeException("queryParam object is null");
 
             if(!paramType.equals(queryParam.getClass().getName()))
                 throw new RuntimeException("queryParam object is not of type "+paramType);
 
-            String queryFormat = hm.get(queryAttributeName);
+
             return replaceString(queryFormat,queryParam);
 
 
@@ -223,7 +225,7 @@ public class SqlRunnerClass implements SqlRunner{
 
 
             if(rs.next()) populateObject(rs,returnObject);
-            //else return null;
+            else return null;
 
             if(rs.next()) {
                 throw new RuntimeException("result returns more than one rows");

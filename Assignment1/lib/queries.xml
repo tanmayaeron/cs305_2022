@@ -1,17 +1,7 @@
- <queries>
-     <sql id="findMovies" paramType="org.foo.Bar">
-      <![CDATA[
-      SELECT a, b, c FROM my_table WHERE x=${propX} AND y=${propY};
-      ]]>
-     </sql>
-     <sql id="addMovie" paramType="org.foo.Bar">
+<queries>
+    <sql id="getName" paramType="sqlAPI.Input">
         <![CDATA[
-        INSERT INTO my_table(x, y, x) VALUES(${propX}, ${propY}, ${propZ});
-        ]]>
-     </sql>
-     <sql id="getName" paramType="org.foo.Bar">
-         <![CDATA[
         SELECT first_name from actor WHERE actor_id=${actorId};
         ]]>
-     </sql>
- </queries>
+    </sql>
+</queries>

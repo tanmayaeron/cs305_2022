@@ -15,7 +15,7 @@ public class XmlParserTest {
 
     @BeforeEach void initialiseParser() {
         attributeNames = new String[]{"id","paramType"};
-        xmlParser = new XmlParser("queries.xml","sql",attributeNames);
+        xmlParser = new XmlParser("parser.xml","sql",attributeNames);
     }
 
     @Test void selectOneByAttribute() {
