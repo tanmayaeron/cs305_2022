@@ -14,11 +14,18 @@ import static org.junit.jupiter.api.Assertions.*;
 class Name {
     public String first_name;
     public String last_name;
+
+    @Override public String toString(){
+        return "('"+first_name+"','"+last_name+"')";
+    }
+
 }
 
-//class Input {
-//    int actorId;
-//}
+class updateInput {
+    public String last_name_value;
+    public List<String> first_name_list;
+}
+
 
 
 public class SqlRunnerTest {
@@ -30,7 +37,7 @@ public class SqlRunnerTest {
         try {
             con = DriverManager.getConnection("jdbc:mysql://localhost:3306/sakila",
                     "root", "root");
-
+            con.setAutoCommit(false);
             SqlRunnerClass.OpPrams opp = new SqlRunnerClass.OpPrams();
             opp.con = con;
             opp.filePath = "queries.xml";
@@ -42,8 +49,8 @@ public class SqlRunnerTest {
 
         }
         catch(Exception e) {
-
-            assertTrue(false,"setup failed");}
+            System.out.println(e);
+        }
     }
 
     @AfterEach void tearDown(){
@@ -53,7 +60,6 @@ public class SqlRunnerTest {
         }
         catch(Exception e){
             System.out.println(e);
-            assertTrue(false,"failed to close connection");
         }
 
     }
@@ -86,17 +92,56 @@ public class SqlRunnerTest {
     }
 
 
-    @Test void update(){
+    @Test void insert(){
+
+        Name name = new Name();
+        name.first_name = "TANMAY";
+        name.last_name = "AERON";
+        int rowsAffected = classUnderTest.insert("insertPerson",name);
+        assertEquals(1,rowsAffected);
 
     }
 
+    @Test void update(){
 
-    @Test void insert(){
+        List<String> nameList = new ArrayList<>();
+        nameList.add("PENELOPE");
+        nameList.add("NICK");
+        nameList.add("ED");
+
+        updateInput input = new updateInput();
+        input.first_name_list = nameList;
+        input.last_name_value = "AERON";
+
+        int rowsAffected = classUnderTest.update("update_last_name",input);
+
+        assertEquals(10,rowsAffected);
 
     }
 
 
     @Test void delete(){
+
+        Name name1 = new Name();
+        name1.first_name = "TANMAY";
+        name1.last_name = "AERON";
+        int rowsAffected = classUnderTest.insert("insertPerson",name1);
+        assertEquals(1,rowsAffected,"insertion of first person failed");
+
+        Name name2 = new Name();
+        name2.first_name = "TANMAY";
+        name2.last_name = "AERON";
+        rowsAffected = classUnderTest.insert("insertPerson",name2);
+        assertEquals(1,rowsAffected,"insertion of second person failed");
+
+        List<Name> nameList = new ArrayList<>();
+        System.out.println(nameList.getClass().getName());
+        nameList.add(name1);
+        nameList.add(name2);
+
+        rowsAffected = classUnderTest.delete("delete",nameList);
+        assertEquals(2,rowsAffected,"deletion failed");
+
 
     }
 

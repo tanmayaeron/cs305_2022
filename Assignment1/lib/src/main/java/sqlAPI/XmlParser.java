@@ -32,7 +32,7 @@ public class XmlParser {
             doc = db.parse(file);
             doc.getDocumentElement().normalize();
         }
-        catch (Exception e) {System.out.println(e);}
+        catch (Exception e) {throw new RuntimeException(e);}
 
     }
 

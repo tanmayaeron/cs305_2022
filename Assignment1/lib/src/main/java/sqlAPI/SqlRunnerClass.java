@@ -145,10 +145,7 @@ public class SqlRunnerClass implements SqlRunner{
                     }
 
                 }
-            } catch (Exception e) {
-                //System.out.println(e);
-                throw new RuntimeException(e);
-            }
+            } catch (Exception e) {throw new RuntimeException(e);}
 
             matcher.appendTail(buffer);
 

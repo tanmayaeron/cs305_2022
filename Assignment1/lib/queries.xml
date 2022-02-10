@@ -9,4 +9,19 @@
         SELECT first_name,last_name from actor WHERE actor_id IN ${value} order by actor_id;
         ]]>
     </sql>
+    <sql id="insertPerson" paramType="sqlAPI.Name">
+        <![CDATA[
+        INSERT into actor(first_name,last_name) values(${first_name},${last_name});
+        ]]>
+    </sql>
+    <sql id="update_last_name" paramType="sqlAPI.updateInput">
+        <![CDATA[
+        UPDATE actor set last_name=${last_name_value} where first_name IN ${first_name_list};
+        ]]>
+    </sql>
+    <sql id="delete" paramType="java.util.ArrayList">
+        <![CDATA[
+        DELETE from actor where (first_name,last_name) IN ${value};
+        ]]>
+    </sql>
 </queries>
