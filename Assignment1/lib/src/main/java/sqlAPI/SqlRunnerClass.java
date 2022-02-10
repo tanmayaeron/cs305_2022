@@ -17,6 +17,7 @@ public class SqlRunnerClass implements SqlRunner{
     private final static String queryAttributeName = "textContent";
     private final static String[] primitiveClassName = {"java.lang.Integer","java.lang.Byte","java.lang.Short","java.lang.Long"
     ,"java.lang.Float","java.lang.Double","java.lang.Boolean","java.lang.Character"};
+
     public static class OpPrams {
         public Connection con;
         public String filePath;
@@ -40,25 +41,25 @@ public class SqlRunnerClass implements SqlRunner{
         catch(Exception e){throw new RuntimeException(e);}
     }
 
-    public static <T> boolean isPrimitiveWrapper(String className,T queryParam){
+    private static <T> boolean isPrimitiveWrapper(String className,T queryParam){
         for(int i=0;i<primitiveClassName.length;i++){
             if(className.equals(primitiveClassName[i])) return true;
         }
         return false;
     }
 
-    public static <T> boolean isElement(String className,T queryParam){
+    private static <T> boolean isElement(String className,T queryParam){
         if(isPrimitiveWrapper(className,queryParam)) return true;
         if(className.equals("java.util.Date")) return true;
         return className.equals("java.lang.String");
     }
 
-    public static <T> boolean isCollectionOrArray(String className,T queryParam){
+    private static <T> boolean isCollectionOrArray(String className,T queryParam){
         if(queryParam.getClass().isArray()) return true;
         return queryParam instanceof Collection<?>;
     }
 
-    public static <T> String stringForElement(T param){
+    private static <T> String stringForElement(T param){
         String className = param.getClass().getName();
         if(className.equals("java.lang.String")||className.equals("java.lang.Character")
                 ||className.equals("java.util.Date")){
@@ -73,7 +74,7 @@ public class SqlRunnerClass implements SqlRunner{
     }
 
     //this function works for both collection and array
-    public static <T> String stringForCollection(T param){
+    private static <T> String stringForCollection(T param){
 
         StringBuffer buffer = new StringBuffer();
         buffer.append("(");
@@ -114,7 +115,7 @@ public class SqlRunnerClass implements SqlRunner{
 
 
 
-    public static <T> String replaceString(String inputStr,  T queryParam) {
+    private static <T> String replaceString(String inputStr,  T queryParam) {
         Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
         Matcher matcher = pattern.matcher(inputStr);
 
@@ -154,7 +155,7 @@ public class SqlRunnerClass implements SqlRunner{
         return buffer.toString();
     }
 
-    public static <T> void populateObject(ResultSet rs,T returnObject) {
+    private static <T> void populateObject(ResultSet rs,T returnObject) {
         try {
             ResultSetMetaData rsmd = rs.getMetaData();
             int columnCount = rsmd.getColumnCount();
@@ -176,7 +177,7 @@ public class SqlRunnerClass implements SqlRunner{
 
     }
 
-    public <T> String getQueryString(String queryId,T queryParam){
+    private <T> String getQueryString(String queryId,T queryParam){
         ////check queryParam type matching with XML
         ////check if got an element from xmlParser
         ////check if queryParam is not null
@@ -208,7 +209,7 @@ public class SqlRunnerClass implements SqlRunner{
 
     public <T,R> R selectOne(String queryId,T queryParam, Class<R> resultType) {
 
-        //check queryParam type supplied
+
 
         try {
 
@@ -254,7 +255,7 @@ public class SqlRunnerClass implements SqlRunner{
 
     }
 
-    public <T> int executeUpdateQuery(String queryId,T queryParam){
+    private <T> int executeUpdateQuery(String queryId,T queryParam){
 
         try {
             String query = getQueryString(queryId,queryParam);
