@@ -24,4 +24,20 @@
         DELETE from actor where (first_name,last_name) IN ${value};
         ]]>
     </sql>
+    <sql id="delete2" paramType="[LsqlAPI.Name;">
+        <![CDATA[
+        DELETE from actor where (first_name,last_name) IN ${value};
+        ]]>
+    </sql>
+    <sql id="no_query_returned" paramType="null">
+        <![CDATA[
+        SELECT first_name,last_name from actor WHERE actor_id=300;
+        ]]>
+    </sql>
+    <sql id="more_than_one_rows" paramType="null">
+        <![CDATA[
+        SELECT first_name,last_name from actor WHERE actor_id IN (1,2);
+        ]]>
+    </sql>
+
 </queries>

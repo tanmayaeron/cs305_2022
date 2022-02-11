@@ -73,6 +73,21 @@ public class SqlRunnerTest {
 
     }
 
+    @Test void typeMismatch(){
+        byte actorId = 1;
+
+
+        assertThrows(RuntimeException.class,()->classUnderTest.selectOne("getName",actorId,Name.class));
+
+    }
+
+    @Test void noRowReturned(){
+        assertNull(classUnderTest.selectOne("no_query_returned",null,Name.class));
+    }
+
+    @Test void multipleRows(){
+        assertThrows(RuntimeException.class,()->classUnderTest.selectOne("more_than_one_rows",null,Name.class));
+    }
 
     @Test void selectMany(){
         int[] actorIds = {1,2,3};
@@ -140,6 +155,31 @@ public class SqlRunnerTest {
         nameList.add(name2);
 
         rowsAffected = classUnderTest.delete("delete",nameList);
+        assertEquals(2,rowsAffected,"deletion failed");
+
+
+    }
+
+    @Test void delete2(){
+
+        Name name1 = new Name();
+        name1.first_name = "TANMAY";
+        name1.last_name = "AERON";
+        int rowsAffected = classUnderTest.insert("insertPerson",name1);
+        assertEquals(1,rowsAffected,"insertion of first person failed");
+
+        Name name2 = new Name();
+        name2.first_name = "TANMAY";
+        name2.last_name = "AERON";
+        rowsAffected = classUnderTest.insert("insertPerson",name2);
+        assertEquals(1,rowsAffected,"insertion of second person failed");
+
+        Name []nameList = {name1,name2};
+        System.out.println(nameList.getClass().getName());
+//        nameList.add(name1);
+//        nameList.add(name2);
+
+        rowsAffected = classUnderTest.delete("delete2",nameList);
         assertEquals(2,rowsAffected,"deletion failed");
 
 

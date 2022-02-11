@@ -212,7 +212,7 @@ public class SqlRunnerClass implements SqlRunner{
             String paramType = hm.get(params.paramTypeAttributeName);
             String queryFormat = hm.get(queryAttributeName);
 
-            if(queryParam==null&&paramType==null) return queryFormat;
+            if(queryParam==null&&paramType.equals("null")) return queryFormat;
             if(queryParam==null) throw new RuntimeException("queryParam object is null");
 
             //check queryParam type matching with XML
@@ -246,7 +246,7 @@ public class SqlRunnerClass implements SqlRunner{
             ResultSetMetaData rsmd = rs.getMetaData();
             System.out.println("Column count: "+rsmd.getColumnCount());
 
-            ////get POJO pupulated by value
+            //get POJO pupulated by value
             if(rs.next()) populateObject(rs,returnObject);
             else return null;   //if 0 row is returned by SQL, return null reference
 

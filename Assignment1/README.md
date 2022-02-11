@@ -133,7 +133,9 @@ insert, update and delete returns number of rows affected.
    gradle test
    ```
 
-<h1>Provide a snapshot of a sample run</h1>
+<h1>Code Coverage</h1>
+
+![Code Coverage - 98%](images/codeCoverage.png)
 
 
 
