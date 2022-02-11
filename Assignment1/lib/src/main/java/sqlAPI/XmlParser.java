@@ -20,12 +20,16 @@ public class XmlParser {
     String[] attributeNames;
     Document doc;
 
+    //path of file
+    //tagName of nodes which are to be extracted
+    //attributeNames whose value for nodes are to be extracted
     public XmlParser(String filePath,String tagName,String[] attributeNames) {
         this.filePath = filePath;
         this.tagName = tagName;
         this.attributeNames = attributeNames;
 
         try {
+            //opening file
             file = new File(this.filePath);
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
             DocumentBuilder db = dbf.newDocumentBuilder();
@@ -36,6 +40,7 @@ public class XmlParser {
 
     }
 
+    //this function extract all nodes where attribute named 'attributeName' has value 'attributeValue'
     public ArrayList<HashMap<String, String>> getElementByAttributeValue(String attributeName, String attributeValue) {
         NodeList nodeList = doc.getElementsByTagName(tagName);
         ArrayList<HashMap<String,String>> elementList = new ArrayList<HashMap<String,String>>();
@@ -48,10 +53,14 @@ public class XmlParser {
                 String nodeAttributeValue = tElement.getAttribute(attributeName);
                 if(nodeAttributeValue.equals(attributeValue)) {
                     HashMap<String, String> hm = new HashMap<String, String>();
+
+                    //getting value of all attributes in attributeNames
                     for(int j=0;j<attributeNames.length;j++) {
                         String index = attributeNames[j];
                         hm.put(index,tElement.getAttribute(index).trim());
                     }
+
+                    //extracting textContent of tag
                     hm.put("textContent",tElement.getTextContent().trim());
 
                     elementList.add(hm);
@@ -65,20 +74,30 @@ public class XmlParser {
         return elementList;
     }
 
+    //this function returns all nodes corresponding to tagName
     public ArrayList<HashMap<String,String>> getAllElements(){
+
+        //get list of all nodes
         NodeList nodeList = doc.getElementsByTagName(tagName);
         ArrayList<HashMap<String,String>> elementList = new ArrayList<HashMap<String,String>>();
 
+        /*for every node create a hashmap and fill it with (attributeName,attributeValue)
+          and ("textContent",text content inside tag
+        */
         for(int i=0;i<nodeList.getLength();i++) {
             Node node = nodeList.item(i);
             if(node.getNodeType()==Node.ELEMENT_NODE) {
                 Element tElement = (Element)node;
 
                 HashMap<String, String> hm = new HashMap<String, String>();
+
+                //getting value of all attributes in attributeNames
                 for(int j=0;j<attributeNames.length;j++) {
                     String index = attributeNames[j];
                     hm.put(index,tElement.getAttribute(index).trim());
                 }
+
+                //extracting textContent of tag
                 hm.put("textContent",tElement.getTextContent().trim());
 
                 elementList.add(hm);

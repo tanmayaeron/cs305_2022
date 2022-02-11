@@ -30,9 +30,11 @@ public class SqlRunnerClass implements SqlRunner{
     private final XmlParser xmlParser;
     private final Statement stmt;
 
+
     public SqlRunnerClass(OpPrams parameters) {
         params = parameters;
 
+        //trying to instantiate XML Parser for given XML file
         try {
             String[] attributeNames = {params.uniqueAttributeName,params.paramTypeAttributeName};
             xmlParser = new XmlParser(params.filePath,params.tagName,attributeNames);
@@ -41,12 +43,15 @@ public class SqlRunnerClass implements SqlRunner{
         catch(Exception e){throw new RuntimeException(e);}
     }
 
+
+    //checks if given type is primitive Wrapper or not
     private static <T> boolean isPrimitiveWrapper(String className,T queryParam){
         for(int i=0;i<primitiveClassName.length;i++){
             if(className.equals(primitiveClassName[i])) return true;
         }
         return false;
     }
+
 
     private static <T> boolean isElement(String className,T queryParam){
         if(isPrimitiveWrapper(className,queryParam)) return true;
@@ -59,8 +64,11 @@ public class SqlRunnerClass implements SqlRunner{
         return queryParam instanceof Collection<?>;
     }
 
+    //return string for String/Char/Date and primitiveWrapper type
     private static <T> String stringForElement(T param){
         String className = param.getClass().getName();
+
+        //'' is appended because SQL expects this
         if(className.equals("java.lang.String")||className.equals("java.lang.Character")
                 ||className.equals("java.util.Date")){
             return "'"+param+"'";
@@ -74,15 +82,18 @@ public class SqlRunnerClass implements SqlRunner{
     }
 
     //this function works for both collection and array
+    //return value of elements separated by , enclosed in ()
     private static <T> String stringForCollection(T param){
 
         StringBuffer buffer = new StringBuffer();
         buffer.append("(");
         if(param.getClass().isArray()){
+
             int len = Array.getLength(param);
             for(int i=0;i<len;i++){
                 Object obj = Array.get(param,i);
 
+                //, is appended only when it is not first object
                 if(i!=0) buffer.append(",");
                 if(isElement(obj.getClass().getName(),obj))
                     buffer.append(stringForElement(obj));
@@ -114,8 +125,10 @@ public class SqlRunnerClass implements SqlRunner{
     }
 
 
-
+    // replace placeholders by values provided in queryParam
     private static <T> String replaceString(String inputStr,  T queryParam) {
+
+        //extracts ${} with help of regex
         Pattern pattern = Pattern.compile("\\$\\{(.+?)\\}");
         Matcher matcher = pattern.matcher(inputStr);
 
@@ -155,20 +168,27 @@ public class SqlRunnerClass implements SqlRunner{
         return buffer.toString();
     }
 
+
+    //populate object by matching column names with field of returnObject
     private static <T> void populateObject(ResultSet rs,T returnObject) {
         try {
             ResultSetMetaData rsmd = rs.getMetaData();
+
+            //columnCount in result
             int columnCount = rsmd.getColumnCount();
 
             Class<?> cls = returnObject.getClass();
 
             for(int i=1;i<=columnCount;i++){
                 String columnName =  rsmd.getColumnName(i);
+
+                //getting field with name as columnName
                 Field field = cls.getDeclaredField(columnName);
                 field.setAccessible(true);
 
                 Object value = rs.getObject(i);
 
+                //setting field value
                 field.set(returnObject,value);
 
             }
@@ -178,14 +198,15 @@ public class SqlRunnerClass implements SqlRunner{
     }
 
     private <T> String getQueryString(String queryId,T queryParam){
-        ////check queryParam type matching with XML
-        ////check if got an element from xmlParser
-        ////check if queryParam is not null
+
 
         try{
+            //gets query with id queryId
             ArrayList< HashMap<String,String> > arrLi =
                     xmlParser.getElementByAttributeValue(params.uniqueAttributeName, queryId);
+            //if no query is found throw exception
             if(arrLi.size()==0) throw new RuntimeException("No query with given parameters found");
+
 
             HashMap<String,String> hm = arrLi.get(0);
             String paramType = hm.get(params.paramTypeAttributeName);
@@ -194,6 +215,7 @@ public class SqlRunnerClass implements SqlRunner{
             if(queryParam==null&&paramType==null) return queryFormat;
             if(queryParam==null) throw new RuntimeException("queryParam object is null");
 
+            //check queryParam type matching with XML
             if(!paramType.equals(queryParam.getClass().getName()))
                 throw new RuntimeException("queryParam object is not of type "+paramType);
 
@@ -213,18 +235,23 @@ public class SqlRunnerClass implements SqlRunner{
 
         try {
 
+            //get query after being replaced with value
             String query = getQueryString(queryId,queryParam);
+
 
             R returnObject = resultType.getDeclaredConstructor().newInstance();
 
+            //execute query
             ResultSet rs = stmt.executeQuery(query);
             ResultSetMetaData rsmd = rs.getMetaData();
             System.out.println("Column count: "+rsmd.getColumnCount());
 
-
+            ////get POJO pupulated by value
             if(rs.next()) populateObject(rs,returnObject);
-            else return null;
+            else return null;   //if 0 row is returned by SQL, return null reference
 
+
+            //if more than one row is returned by SQL, throw exception
             if(rs.next()) {
                 throw new RuntimeException("result returns more than one rows");
             }
@@ -242,8 +269,16 @@ public class SqlRunnerClass implements SqlRunner{
         List<R> returnList = new ArrayList<>();
 
         try {
+            //get query after being replaced with value
             String query = getQueryString(queryId,queryParam);
+
+            //execute query
             ResultSet rs = stmt.executeQuery(query);
+
+            /*
+            populate POJO for every row returned
+            and add to list
+             */
             while(rs.next()){
                 R returnObject = resultType.getDeclaredConstructor().newInstance();
                 populateObject(rs,returnObject);
