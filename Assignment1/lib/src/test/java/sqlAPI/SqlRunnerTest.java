@@ -4,6 +4,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.util.ArrayList;
@@ -21,10 +22,26 @@ class Name {
 
 }
 
+
+
 class updateInput {
     public String last_name_value;
     public List<String> first_name_list;
 }
+
+
+
+class SakilaTest0Output {
+    public int FID;
+    public String title;
+    public String description;
+    public String category;
+    public BigDecimal price;
+    public int length;
+    public String rating;
+    public String actors;
+}
+
 
 
 
@@ -176,8 +193,7 @@ public class SqlRunnerTest {
 
         Name []nameList = {name1,name2};
         System.out.println(nameList.getClass().getName());
-//        nameList.add(name1);
-//        nameList.add(name2);
+
 
         rowsAffected = classUnderTest.delete("delete2",nameList);
         assertEquals(2,rowsAffected,"deletion failed");
@@ -185,5 +201,9 @@ public class SqlRunnerTest {
 
     }
 
+    @Test void complex(){
+        List<SakilaTest0Output> li =classUnderTest.selectMany("random",null,SakilaTest0Output.class);
+        assertEquals(371,li.size());
+    }
 
 }

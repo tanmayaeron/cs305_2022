@@ -180,7 +180,7 @@ public class SqlRunnerClass implements SqlRunner{
             Class<?> cls = returnObject.getClass();
 
             for(int i=1;i<=columnCount;i++){
-                String columnName =  rsmd.getColumnName(i);
+                String columnName =  rsmd.getColumnLabel(i);
 
                 //getting field with name as columnName
                 Field field = cls.getDeclaredField(columnName);
