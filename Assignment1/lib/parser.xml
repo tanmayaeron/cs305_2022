@@ -1,0 +1,13 @@
+ <queries>
+     <sql id="findMovies" paramType="org.foo.Bar">
+      <![CDATA[
+      SELECT a, b, c FROM my_table WHERE x=${propX} AND y=${propY};
+      ]]>
+     </sql>
+     <sql id="addMovie" paramType="org.foo.Bar">
+        <![CDATA[
+        INSERT INTO my_table(x, y, x) VALUES(${propX}, ${propY}, ${propZ});
+        ]]>
+     </sql>
+
+ </queries>
