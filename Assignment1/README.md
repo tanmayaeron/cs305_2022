@@ -116,12 +116,13 @@ insert, update and delete returns number of rows affected.
    <h3>Prerequisite</h3>
    This library is build using Java and gradle.\
    For running unit tests given, edit the path to connection,userName and password.
-   sakila database which is available at ``` https://dev.mysql.com/doc/sakila/en/``` should be installed.
+   sakila database which is available at https://dev.mysql.com/doc/sakila/en/  should be installed.
 
    <h3>How to run</h3>
    First clone the repository with the following command:
+   
    ```
-   https://github.com/tanmayaeron/cs305_2022
+   git clone https://github.com/tanmayaeron/cs305_2022
    ```
    Navigate into Assignment1 directory\
    Build the project with the following command: 
